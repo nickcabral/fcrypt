@@ -8,7 +8,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
-	b64 "encoding/base64"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -18,7 +18,6 @@ import (
 )
 
 const configFileName = "fcrypt-config.json"
-const fileMode = 0644
 
 // Config contains a private and public key pair, and a path to the encrypted data directory
 type Config struct {
@@ -26,6 +25,7 @@ type Config struct {
 	pubPem      *pem.Block
 	dataDirPath string
 }
+
 type configJSON struct {
 	PrivPem string
 	PubPem  string
@@ -63,7 +63,7 @@ func Init(pw, dataDirPath string) (config *Config, err error) {
 		PubPem:  string(pem.EncodeToMemory(result.pubPem)[:]),
 	}
 	jsonBytes, err := json.Marshal(cfgJSON)
-	if err := ioutil.WriteFile(filepath.Join(dataDirPath, configFileName), jsonBytes, fileMode); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(dataDirPath, configFileName), jsonBytes, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("failed to store configuration: %v", err)
 	}
 	return result, nil
@@ -126,12 +126,12 @@ func (cfg *Config) Encrypt(fPath string) error {
 		return fmt.Errorf("failed to encrypt CEK: %v", err)
 	}
 	cipherJSON := encryptedFileJSON{
-		ECEK:       b64.StdEncoding.EncodeToString(ecek),
-		CipherText: b64.StdEncoding.EncodeToString(cipherText),
-		Nonce:      b64.StdEncoding.EncodeToString(nonce),
+		ECEK:       base64.StdEncoding.EncodeToString(ecek),
+		CipherText: base64.StdEncoding.EncodeToString(cipherText),
+		Nonce:      base64.StdEncoding.EncodeToString(nonce),
 	}
 	jsonBytes, _ := json.Marshal(cipherJSON)
-	if err := ioutil.WriteFile(cfg.getOutFilePath(fPath), jsonBytes, fileMode); err != nil {
+	if err := ioutil.WriteFile(cfg.getOutFilePath(fPath), jsonBytes, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to store encrypted data: %v", err)
 	}
 	if err = os.Remove(fPath); err != nil {
@@ -161,7 +161,7 @@ func (cfg *Config) Decrypt(pw, fPath string) error {
 	privKey, _ := x509.ParsePKCS1PrivateKey(privPEM)
 
 	// use the private key to decrypt the ECEK
-	ecekBytes, _ := b64.StdEncoding.DecodeString(encFileJSON.ECEK)
+	ecekBytes, _ := base64.StdEncoding.DecodeString(encFileJSON.ECEK)
 	cek, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privKey, ecekBytes, make([]byte, 0))
 	if err != nil {
 		return fmt.Errorf("failed to decrypt CEK: %v", err)
@@ -176,13 +176,13 @@ func (cfg *Config) Decrypt(pw, fPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create GCM cipher: %v", err)
 	}
-	nonce, _ := b64.StdEncoding.DecodeString(encFileJSON.Nonce)
-	cipherText, _ := b64.StdEncoding.DecodeString(encFileJSON.CipherText)
+	nonce, _ := base64.StdEncoding.DecodeString(encFileJSON.Nonce)
+	cipherText, _ := base64.StdEncoding.DecodeString(encFileJSON.CipherText)
 	plainText, err := gcm.Open(nil, nonce, cipherText, nil)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt the file content: %v", err)
 	}
-	if err := ioutil.WriteFile(fPath, plainText, fileMode); err != nil {
+	if err := ioutil.WriteFile(fPath, plainText, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write the decrypted file: %v", err)
 	}
 	if err = os.Remove(cfg.getOutFilePath(fPath)); err != nil {

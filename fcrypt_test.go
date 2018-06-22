@@ -1,118 +1,259 @@
 package fcrypt
 
 import (
+	"crypto/rand"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
 )
 
-var encrypteddir = path.Join(os.TempDir(), "testdir")
-var insecuredir = path.Join(os.TempDir(), "anothertestdir")
-var unknowndir = path.Join(os.TempDir(), "_____dir")
-var existingfile = path.Join(os.TempDir(), "anothertestdir/test1.txt")
-var encrypteddatafile = path.Join(os.TempDir(), "testdir/test1.txt.json")
-var content = "my secret message"
+const unknowndir = "_____dir"
+const pw = "pw"
+const content = "secret message"
 
-func TestMain(m *testing.M) {
-	os.Mkdir(encrypteddir, 0644)
-	os.Mkdir(insecuredir, 0644)
-	ioutil.WriteFile(existingfile, []byte(content), 0644)
+var cfg *Config
+var encrypteddir string
+var insecuredir string
+var existingfile string
+var encrypteddatafile string
 
-	result := m.Run()
+func setup() {
+	encrypteddir, _ = ioutil.TempDir("", "")
+	insecuredir, _ = ioutil.TempDir("", "")
+	existingfile = path.Join(insecuredir, "test.txt")
+	encrypteddatafile = path.Join(encrypteddir, "test.txt.json")
+	ioutil.WriteFile(existingfile, []byte(content), os.ModePerm)
+	cfg, _ = Init(pw, encrypteddir)
+}
+
+func teardown() {
 	os.RemoveAll(encrypteddir)
 	os.RemoveAll(insecuredir)
 	os.RemoveAll(unknowndir)
-	os.Exit(result)
 }
 
 func TestInit_NonExistentPath_Err(t *testing.T) {
-	_, err := Init("pw", "____dir")
+	_, err := Init(pw, unknowndir)
+
 	if err == nil {
 		t.Error()
 	}
+	teardown()
 }
 
 func TestInit_EmptyPassword_NoErr(t *testing.T) {
 	_, err := Init("", encrypteddir)
+
 	if err != nil {
 		t.Error(err)
 	}
+	teardown()
 }
 
 func TestInit_GoodPath_NoErr(t *testing.T) {
-	_, err := Init("pw", encrypteddir)
+	_, err := Init(pw, encrypteddir)
+
 	if err != nil {
 		t.Error(err)
 	}
+	teardown()
 }
 
 func TestLoad_InitializedDir_NoErr(t *testing.T) {
-	_, _ = Init("pw", encrypteddir)
-	_, err := Load(encrypteddir)
-	if err != nil {
+	setup()
+
+	if _, err := Load(encrypteddir); err != nil {
 		t.Error(err)
 	}
+	teardown()
 }
 
 func TestLoad_UninitializedDir_Err(t *testing.T) {
-	_, err := Load(unknowndir)
-	if err == nil {
+	setup()
+
+	if _, err := Load(unknowndir); err == nil {
 		t.Error()
 	}
+	teardown()
 }
 
 func TestConfig_Encrypt_FileExists_NoErr(t *testing.T) {
-	cfg, _ := Init("pw", encrypteddir)
+	setup()
+
 	err := cfg.Encrypt(existingfile)
+
 	if err != nil {
 		t.Error(err)
 	}
+	teardown()
 }
 
 func TestConfig_Encrypt_FileExists_ExpectedEncryptedDataExists(t *testing.T) {
-	cfg, _ := Init("pw", encrypteddir)
+	setup()
+
 	_ = cfg.Encrypt(existingfile)
+
 	if _, err := os.Stat(encrypteddatafile); err != nil {
 		t.Error(err)
 	}
+	teardown()
 }
 
 func TestConfig_Encrypt_FileDoesntExist_Err(t *testing.T) {
-	cfg, _ := Init("pw", encrypteddir)
+	setup()
 
-	err := cfg.Encrypt("someotherfile")
-
-	if err == nil {
+	if err := cfg.Encrypt("someotherfile"); err == nil {
 		t.Error()
 	}
+	teardown()
 }
 
-func TestConfig_Decrypt_KnownFile_NoErr(t *testing.T) {
-	cfg, _ := Init("pw", encrypteddir)
+func TestConfig_Decrypt_KnownFileGoodPassword_NoErr(t *testing.T) {
+	setup()
 	_ = cfg.Encrypt(existingfile)
 
-	err := cfg.Decrypt("pw", existingfile)
-
-	if err != nil {
+	if err := cfg.Decrypt(pw, existingfile); err != nil {
 		t.Error(err)
 	}
+	teardown()
 }
 
-func TestConfig_Decrypt_KnownFile_ExpectedDataRestored(t *testing.T) {
-	cfg, _ := Init("pw", encrypteddir)
+func TestConfig_Decrypt_KnownFileGoodPassword_ExpectedDataRestored(t *testing.T) {
+	setup()
 	_ = cfg.Encrypt(existingfile)
 
-	_ = cfg.Decrypt("pw", existingfile)
+	_ = cfg.Decrypt(pw, existingfile)
 
 	if _, err := os.Stat(existingfile); err != nil {
 		t.Error(err)
 	}
+	if bytes, _ := ioutil.ReadFile(existingfile); string(bytes) != content {
+		t.Error()
+	}
+	teardown()
 }
 
-func BenchmarkEncrypt_SmallFile(b *testing.B) {
-	cfg, _ := Init("pw", encrypteddatafile)
+func TestConfig_Decrypt_KnownFileBadPassword_DataNotDecrypted(t *testing.T) {
+	setup()
+	_ = cfg.Encrypt(existingfile)
+
+	_ = cfg.Decrypt("wrong password", existingfile)
+
+	if _, err := os.Stat(existingfile); err == nil {
+		t.Error()
+	}
+	teardown()
+}
+
+func TestConfig_Decrypt_KnownFileBadPassword_Err(t *testing.T) {
+	setup()
+	_ = cfg.Encrypt(existingfile)
+
+	if err := cfg.Decrypt("no good", existingfile); err == nil {
+		t.Error()
+	}
+	teardown()
+}
+
+func BenchmarkEncrypt_4KBFile(b *testing.B) {
+	setup()
+	content := make([]byte, 1<<12)
+	rand.Read(content)
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		ioutil.WriteFile(existingfile, []byte(content), os.ModePerm)
+		b.StartTimer()
+
 		cfg.Encrypt(existingfile)
 	}
+	b.StopTimer()
+	teardown()
+}
+
+func BenchmarkEncrypt_1MBFile(b *testing.B) {
+	setup()
+	content := make([]byte, 1<<20)
+	rand.Read(content)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		ioutil.WriteFile(existingfile, []byte(content), os.ModePerm)
+		b.StartTimer()
+
+		cfg.Encrypt(existingfile)
+	}
+	b.StopTimer()
+	teardown()
+}
+
+func BenchmarkEncrypt_256MBFile(b *testing.B) {
+	setup()
+	content := make([]byte, 1<<28)
+	rand.Read(content)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		ioutil.WriteFile(existingfile, []byte(content), os.ModePerm)
+		b.StartTimer()
+
+		cfg.Encrypt(existingfile)
+	}
+	b.StopTimer()
+	teardown()
+}
+
+func BenchmarkDecrypt_4KBFile(b *testing.B) {
+	setup()
+	content := make([]byte, 1<<12)
+	rand.Read(content)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		cfg.Encrypt(existingfile)
+		b.StartTimer()
+
+		cfg.Decrypt(pw, existingfile)
+	}
+	b.StopTimer()
+	teardown()
+}
+
+func BenchmarkDecrypt_1MBFile(b *testing.B) {
+	setup()
+	content := make([]byte, 1<<20)
+	rand.Read(content)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		cfg.Encrypt(existingfile)
+		b.StartTimer()
+
+		cfg.Decrypt(pw, existingfile)
+	}
+	b.StopTimer()
+	teardown()
+}
+
+func BenchmarkDecrypt_256MBFile(b *testing.B) {
+	setup()
+	content := make([]byte, 1<<28)
+	rand.Read(content)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		cfg.Encrypt(existingfile)
+		b.StartTimer()
+
+		cfg.Decrypt(pw, existingfile)
+	}
+	b.StopTimer()
+	teardown()
 }

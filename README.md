@@ -43,12 +43,11 @@ err := cfg.Decrypt(filePath)
 This function returns `nil` if successful and an `error` otherwise. The encrypted data is deleted
 upon successful restoration of the decrypted file.
 
-## Test Execution
-*NOTE: tests must be run with sudo until I figure out the golang file permission issue I'm stuck on*
-`sudo go test github.com/nickcabral/fcrypt`
+## Test and Benchmark Execution
+`sudo go test github.com/nickcabral/fcrypt -bench=.`
 
 ## Known Issues
 - Duplicate file names are not allowed; need to add a UID-system for naming the encrypted data
 - A mechanism for backing up keys is needed so that a corrupted private key doesn't result in data loss
 - Could be smarter about handling really large files to speed things up.
-- Need to use a secure deletion alg.
+- Need to change to a secure deletion alg.
