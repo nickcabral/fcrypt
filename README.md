@@ -1,23 +1,23 @@
 # fcrypt
 fcrypt (short for file-encrypter) is a library that provides a simple API for encrypting files on
-the local filesystem. It is a work in progress, and not ready for production use. Data is stored
-similarly to encrypted JSON web tokens.
+the local filesystem. It is a work in progress, and not ready for production use. The encrypted data
+is encoded similarly to encrypted JSON web tokens (JWEs).
 - fcrypt maintains an RSA keypair for each initialized directory.
-- The private key is encrypted with AES256 using a client-provided password; client needs to
-store this password securely because it's required for decryption.
-- Files are encrypted using a randomly generated 256 bit key (client does not need to
-provide their password to encrypt files) and AES GCM.
+- The private key is encrypted with AES256 using a client-provided password; client code needs to
+store this password securely (eg. in their user's head) because it's required for decryption.
+- Files are encrypted using a randomly generated 256 bit key and AES GCM. The password is not
+required to encrypt files.
 - The content encryption key is encrypted using the RSA public key.
 - The encrypted content is written to the initialized directory along with its ECEK.
-- When client wants to decrypt files, the provide their password and the original filename.
-- The file's ECEK is decrypted using the RSA private key and the client's password.
-- Finally, the content is decrypted using the CEK, and the client's file is restored.
+- To decrypt a file, client code provides the password and the original filename.
+- The file's ECEK is decrypted using the RSA private key and the password.
+- The content is then decrypted using the CEK, and the original file is restored.
 
 ## Installation
 `go get github.com/nickcabral/fcrypt`
 
 ## Usage
-### Initialize a new fcrypt directory
+### Initialize an existing filesystem directory for fcrypt use
 ``` go
 cfg, err := fcrypt.Init(directoryPath)
 ```
