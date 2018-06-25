@@ -21,13 +21,13 @@ cfg, err := fcrypt.Load(directoryPath)
 ```
 This function returns a `Config` that is used to call `Encrypt()` and `Decrypt()`
 
-### Encrypt a data
+### Encrypt data
 ``` go
 id, err := cfg.Encrypt(dataBytes)
 ```
 This function returns an ID for the data if successful and an `error` otherwise.
 
-### Decrypt a file
+### Decrypt data
 ``` go
 dataBytes, err := cfg.Decrypt(pw, dataID)
 ```
