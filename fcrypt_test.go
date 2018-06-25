@@ -1,142 +1,136 @@
 package fcrypt
 
 import (
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
+	"reflect"
 	"testing"
 )
 
 const unknowndir = "_____dir"
 const pw = "pw"
-const content = "secret message"
 
 var cfg *Config
 var encrypteddir string
-var insecuredir string
-var existingfile string
-var encrypteddatafile string
+var content = []byte("secret message")
 
 func setup() {
 	encrypteddir, _ = ioutil.TempDir("", "")
-	insecuredir, _ = ioutil.TempDir("", "")
-	existingfile = path.Join(insecuredir, "test.txt")
-	encrypteddatafile = path.Join(encrypteddir, "test.txt.json")
-	ioutil.WriteFile(existingfile, []byte(content), os.ModePerm)
 	cfg, _ = Init(pw, encrypteddir)
 }
 
 func teardown() {
 	os.RemoveAll(encrypteddir)
-	os.RemoveAll(insecuredir)
 	os.RemoveAll(unknowndir)
 }
 
 func TestInit_NonExistentPath_Err(t *testing.T) {
 	setup()
+	defer teardown()
 	if _, err := Init(pw, unknowndir); err == nil {
 		t.Error()
 	}
-	teardown()
 }
 
 func TestInit_EmptyPassword_NoErr(t *testing.T) {
 	setup()
+	defer teardown()
 	if _, err := Init("", encrypteddir); err != nil {
 		t.Error(err)
 	}
-	teardown()
 }
 
 func TestInit_GoodPath_NoErr(t *testing.T) {
 	setup()
+	defer teardown()
 	if _, err := Init(pw, encrypteddir); err != nil {
 		t.Error(err)
 	}
-	teardown()
 }
 
 func TestLoad_InitializedDir_NoErr(t *testing.T) {
 	setup()
+	defer teardown()
 	if _, err := Load(encrypteddir); err != nil {
 		t.Error(err)
 	}
-	teardown()
 }
 
 func TestLoad_UninitializedDir_Err(t *testing.T) {
 	setup()
+	defer teardown()
 	if _, err := Load(unknowndir); err == nil {
-		t.Error()
+		t.Error(err)
 	}
-	teardown()
 }
 
-func TestConfig_Encrypt_FileExists_NoErr(t *testing.T) {
+func TestConfig_Encrypt_GoodData_NoErr(t *testing.T) {
 	setup()
-	err := cfg.Encrypt(existingfile)
+	defer teardown()
+	_, err := cfg.Encrypt(content)
 	if err != nil {
 		t.Error(err)
 	}
-	teardown()
 }
 
-func TestConfig_Encrypt_FileExists_ExpectedEncryptedDataExists(t *testing.T) {
+func TestConfig_Encrypt_GoodData_ExpectedEncryptedDataExists(t *testing.T) {
 	setup()
-	_ = cfg.Encrypt(existingfile)
-	if _, err := os.Stat(encrypteddatafile); err != nil {
+	defer teardown()
+	id, _ := cfg.Encrypt(content)
+	if _, err := os.Stat(path.Join(encrypteddir, fmt.Sprintf("%v.json", id))); err != nil {
 		t.Error(err)
 	}
-	teardown()
 }
 
-func TestConfig_Encrypt_FileDoesntExist_Err(t *testing.T) {
+func TestConfig_Encrypt_NilContent_NoErr(t *testing.T) {
 	setup()
-	if err := cfg.Encrypt("someotherfile"); err == nil {
-		t.Error()
-	}
-	teardown()
-}
-
-func TestConfig_Decrypt_KnownFileGoodPassword_NoErr(t *testing.T) {
-	setup()
-	_ = cfg.Encrypt(existingfile)
-	if err := cfg.Decrypt(pw, existingfile); err != nil {
+	defer teardown()
+	if _, err := cfg.Encrypt(nil); err != nil {
 		t.Error(err)
 	}
-	teardown()
 }
 
-func TestConfig_Decrypt_KnownFileGoodPassword_ExpectedDataRestored(t *testing.T) {
+func TestConfig_Decrypt_KnownIDGoodPassword_NoErr(t *testing.T) {
 	setup()
-	_ = cfg.Encrypt(existingfile)
-	_ = cfg.Decrypt(pw, existingfile)
-	if _, err := os.Stat(existingfile); err != nil {
+	defer teardown()
+	id, _ := cfg.Encrypt(content)
+	if _, err := cfg.Decrypt(pw, id); err != nil {
 		t.Error(err)
 	}
-	if bytes, _ := ioutil.ReadFile(existingfile); string(bytes) != content {
-		t.Error()
-	}
-	teardown()
 }
 
-func TestConfig_Decrypt_KnownFileBadPassword_DataNotDecrypted(t *testing.T) {
+func TestConfig_Decrypt_KnownIDGoodPassword_ExpectedDataReturned(t *testing.T) {
 	setup()
-	_ = cfg.Encrypt(existingfile)
-	_ = cfg.Decrypt("wrong password", existingfile)
-	if _, err := os.Stat(existingfile); err == nil {
+	defer teardown()
+	id, _ := cfg.Encrypt(content)
+	result, _ := cfg.Decrypt(pw, id)
+	if !reflect.DeepEqual(result, content) {
 		t.Error()
 	}
-	teardown()
 }
 
-func TestConfig_Decrypt_KnownFileBadPassword_Err(t *testing.T) {
+func TestConfig_Decrypt_KnownIDBadPassword_DataNotDecrypted(t *testing.T) {
 	setup()
-	_ = cfg.Encrypt(existingfile)
-	if err := cfg.Decrypt("no good", existingfile); err == nil {
+	defer teardown()
+	id, _ := cfg.Encrypt(content)
+	if data, _ := cfg.Decrypt("wrong password", id); data != nil {
 		t.Error()
 	}
-	teardown()
+	if _, err := os.Stat(path.Join(encrypteddir, fmt.Sprintf("%v.json", id))); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestConfig_Decrypt_KnownIDBadPassword_Err(t *testing.T) {
+	setup()
+	defer teardown()
+	id, _ := cfg.Encrypt(content)
+	if _, err := cfg.Decrypt("wrong password", id); err == nil {
+		t.Error(err)
+	}
 }
 
 func BenchmarkEncrypt_64BFile(b *testing.B) {
@@ -173,32 +167,33 @@ func BenchmarkDecrypt_1GBFile(b *testing.B) {
 
 func benchmarkEncrypt(b *testing.B, dataLength uint64) {
 	setupBenchmark(b, dataLength)
+	defer teardown()
 	for i := 0; i < b.N; i++ {
 		b.StartTimer()
-		cfg.Encrypt(existingfile)
+		cfg.Encrypt(content)
 		b.StopTimer()
-
-		cfg.Decrypt(pw, existingfile)
 	}
-	teardown()
 }
 
 func benchmarkDecrypt(b *testing.B, dataLength uint64) {
 	setupBenchmark(b, dataLength)
-	for i := 0; i < b.N; i++ {
-		cfg.Encrypt(existingfile)
+	defer teardown()
 
+	ids := make([]string, b.N)
+	for idx := range ids {
+		ids[idx], _ = cfg.Encrypt(content)
+	}
+	for i := 0; i < b.N; i++ {
 		b.StartTimer()
-		cfg.Decrypt(pw, existingfile)
+		cfg.Decrypt(pw, ids[i])
 		b.StopTimer()
 	}
-	teardown()
 }
 
 func setupBenchmark(b *testing.B, dataLength uint64) {
 	b.StopTimer()
 	b.ResetTimer()
 	setup()
-	content := make([]byte, dataLength)
-	ioutil.WriteFile(existingfile, []byte(content), os.ModePerm)
+	content = make([]byte, dataLength)
+	rand.Read(content)
 }
