@@ -1,0 +1,34 @@
+{"Time":"2018-06-25T07:57:30.945345735-06:00","Action":"run","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_DataDirInitialized_ReturnsExpectedNumberOfIDs"}
+{"Time":"2018-06-25T07:57:30.947667849-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_DataDirInitialized_ReturnsExpectedNumberOfIDs","Output":"=== RUN   TestProcessIncomingMsgs_DataDirInitialized_ReturnsExpectedNumberOfIDs\n"}
+{"Time":"2018-06-25T07:57:32.420976674-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_DataDirInitialized_ReturnsExpectedNumberOfIDs","Output":"--- PASS: TestProcessIncomingMsgs_DataDirInitialized_ReturnsExpectedNumberOfIDs (1.48s)\n"}
+{"Time":"2018-06-25T07:57:32.421090074-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_DataDirInitialized_ReturnsExpectedNumberOfIDs","Elapsed":1.48}
+{"Time":"2018-06-25T07:57:32.421722588-06:00","Action":"run","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_NoMessagesRequested_NoIDsReturned"}
+{"Time":"2018-06-25T07:57:32.421774582-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_NoMessagesRequested_NoIDsReturned","Output":"=== RUN   TestProcessIncomingMsgs_NoMessagesRequested_NoIDsReturned\n"}
+{"Time":"2018-06-25T07:57:32.700538644-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_NoMessagesRequested_NoIDsReturned","Output":"--- PASS: TestProcessIncomingMsgs_NoMessagesRequested_NoIDsReturned (0.28s)\n"}
+{"Time":"2018-06-25T07:57:32.700598994-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_NoMessagesRequested_NoIDsReturned","Elapsed":0.28}
+{"Time":"2018-06-25T07:57:32.700630165-06:00","Action":"run","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_UnknownDataDir_NoIDsReturned"}
+{"Time":"2018-06-25T07:57:32.700663688-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_UnknownDataDir_NoIDsReturned","Output":"=== RUN   TestProcessIncomingMsgs_UnknownDataDir_NoIDsReturned\n"}
+{"Time":"2018-06-25T07:57:32.859736859-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_UnknownDataDir_NoIDsReturned","Output":"--- PASS: TestProcessIncomingMsgs_UnknownDataDir_NoIDsReturned (0.16s)\n"}
+{"Time":"2018-06-25T07:57:32.859812388-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestProcessIncomingMsgs_UnknownDataDir_NoIDsReturned","Elapsed":0.16}
+{"Time":"2018-06-25T07:57:32.859845287-06:00","Action":"run","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_ValidArgs_ReturnsExpectedData"}
+{"Time":"2018-06-25T07:57:32.859865466-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_ValidArgs_ReturnsExpectedData","Output":"=== RUN   TestUnlockMsgs_ValidArgs_ReturnsExpectedData\n"}
+{"Time":"2018-06-25T07:57:34.066927647-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_ValidArgs_ReturnsExpectedData","Output":"--- PASS: TestUnlockMsgs_ValidArgs_ReturnsExpectedData (1.21s)\n"}
+{"Time":"2018-06-25T07:57:34.067014142-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_ValidArgs_ReturnsExpectedData","Elapsed":1.21}
+{"Time":"2018-06-25T07:57:34.067047912-06:00","Action":"run","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_WrongPassword_ReturnsNoData"}
+{"Time":"2018-06-25T07:57:34.067072177-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_WrongPassword_ReturnsNoData","Output":"=== RUN   TestUnlockMsgs_WrongPassword_ReturnsNoData\n"}
+{"Time":"2018-06-25T07:57:34.811859533-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_WrongPassword_ReturnsNoData","Output":"--- PASS: TestUnlockMsgs_WrongPassword_ReturnsNoData (0.74s)\n"}
+{"Time":"2018-06-25T07:57:34.812075145-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Test":"TestUnlockMsgs_WrongPassword_ReturnsNoData","Elapsed":0.74}
+{"Time":"2018-06-25T07:57:34.812131019-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"PASS\n"}
+{"Time":"2018-06-25T07:57:34.817095081-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"ok  \tgithub.com/nickcabral/fcrypt/demo\t3.889s\n"}
+{"Time":"2018-06-25T07:57:34.825545275-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Elapsed":3.899}
+{"Time":"2018-06-25T07:59:40.201751673-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"goos: darwin\n"}
+{"Time":"2018-06-25T07:59:40.203370096-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"goarch: amd64\n"}
+{"Time":"2018-06-25T07:59:40.203401894-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"pkg: github.com/nickcabral/fcrypt/demo\n"}
+{"Time":"2018-06-25T07:59:40.203437725-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"BenchmarkProcessIncomingMsgs_100Msgs-4      \t"}
+{"Time":"2018-06-25T07:59:49.348172323-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"       2\t4265375584 ns/op\n"}
+{"Time":"2018-06-25T07:59:53.058323887-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"BenchmarkProcessIncomingMsgs_1000Msgs-4     \t       1\t3430546815 ns/op\n"}
+{"Time":"2018-06-25T07:59:58.52332588-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"BenchmarkProcessIncomingMsgs_10000Msgs-4    \t       1\t5283040309 ns/op\n"}
+{"Time":"2018-06-25T08:00:07.913669311-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"BenchmarkProcessIncomingMsgs_100000Msgs-4   \t       1\t9126804168 ns/op\n"}
+{"Time":"2018-06-25T08:00:07.913726612-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"PASS\n"}
+{"Time":"2018-06-25T08:00:08.001190474-06:00","Action":"output","Package":"github.com/nickcabral/fcrypt/demo","Output":"ok  \tgithub.com/nickcabral/fcrypt/demo\t29.292s\n"}
+{"Time":"2018-06-25T08:00:08.001271362-06:00","Action":"pass","Package":"github.com/nickcabral/fcrypt/demo","Elapsed":29.292}
